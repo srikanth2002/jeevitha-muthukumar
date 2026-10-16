@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /wishes/{wishId} {
+      // This is a PUBLIC guest book. Everyone can view names and messages.
+      allow read: if true;
+
+      function validWish() {
+        return request.resource.data.keys().hasOnly(['uid', 'name', 'message', 'emoji', 'createdAt', 'updatedAt'])
+          && request.resource.data.keys().hasAll(['uid', 'name', 'message', 'emoji', 'createdAt', 'updatedAt'])
+          && request.resource.data.uid is string
+          && request.resource.data.name is string
+          && request.resource.data.name.size() >= 1
+          && request.resource.data.name.size() <= 40
+          && request.resource.data.message is string
+          && request.resource.data.message.size() >= 2
+          && request.resource.data.message.size() <= 240
+          && request.resource.data.emoji in ['💗', '🌷', '✨', '🧸', '💐', '🙏', '🥰']
+          && request.resource.data.createdAt is timestamp
+          && request.resource.data.updatedAt is timestamp;
+      }
+      function isOwnWish() {
+        return request.auth != null
+          && request.auth.uid == wishId
+          && request.resource.data.uid == request.auth.uid;
+      }
+      // One public wish per anonymous login; guest can update their own wish.
+      allow create: if isOwnWish()
+        && validWish()
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if isOwnWish()
+        && validWish()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+  }
+}

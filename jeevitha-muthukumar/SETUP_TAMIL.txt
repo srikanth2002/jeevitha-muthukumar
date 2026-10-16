@@ -1,0 +1,3 @@
+Anime welcome screen and continuous mobile invitation. QR removed. Original SRINUMA icon and contacts included.
+The user-supplied Thangame Thangame song is included at public/music/thangame-thangame.mp3. Opening the invitation starts music after the visitor tap; Play/Pause and Mute are available. No YouTube redirect.
+Run npm install then npm run dev. Build: npm run build.
